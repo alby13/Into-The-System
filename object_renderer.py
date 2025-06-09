@@ -13,6 +13,11 @@ class ObjectRenderer:
         self.digits = dict(zip(map(str, range(11)), self.digit_images))
         self.game_over_image = self.get_texture('resources/textures/game_over.png', RES)
         self.win_image = self.get_texture('resources/textures/win.png', RES)
+        try:
+            self.circuit_texture = self.get_texture('resources/textures/circuit_board.png', (TEXTURE_SIZE, TEXTURE_SIZE))
+        except pg.error as e:
+            print(f"Warning: Could not load circuit_board.png: {e}")
+            self.circuit_texture = None
 
     def draw(self):
         self.draw_background()
@@ -37,8 +42,19 @@ class ObjectRenderer:
     def draw_background(self):
         # Sky
         pg.draw.rect(self.screen, (0, 0, 0), (0, 0, WIDTH, HALF_HEIGHT))
-        # floor
-        pg.draw.rect(self.screen, (0,0,0), (0, HALF_HEIGHT, WIDTH, HEIGHT))
+        # Floor - Tiled circuit board
+        if self.circuit_texture: # Check if the texture was loaded successfully
+            texture_width = self.circuit_texture.get_width()
+            texture_height = self.circuit_texture.get_height()
+
+            if texture_width > 0 and texture_height > 0: # Ensure dimensions are valid
+                for x in range(0, WIDTH, texture_width):
+                    for y in range(HALF_HEIGHT, HEIGHT, texture_height):
+                        self.screen.blit(self.circuit_texture, (x, y))
+            else: # Fallback if texture has zero dimensions
+                pg.draw.rect(self.screen, (0,0,0), (0, HALF_HEIGHT, WIDTH, HEIGHT))
+        else: # Fallback if self.circuit_texture is None (failed to load)
+            pg.draw.rect(self.screen, (0,0,0), (0, HALF_HEIGHT, WIDTH, HEIGHT))
 
     def render_game_objects(self):
         list_objects = sorted(self.game.raycasting.objects_to_render, key=lambda t: t[0], reverse=True)
