@@ -23,6 +23,7 @@ class Game:
         self.global_trigger = False
         self.global_event = pg.USEREVENT + 0
         pg.time.set_timer(self.global_event, 40)
+        self.sound_enabled = False # Initialize sound_enabled attribute
         self.new_game()
 
     def new_game(self):
@@ -32,9 +33,10 @@ class Game:
         self.raycasting = RayCasting(self)
         self.object_handler = ObjectHandler(self)
         self.weapon = Weapon(self)
-        self.sound = Sound(self)
+        self.sound = Sound(self) # This will set self.sound_enabled if successful
         self.pathfinding = PathFinding(self)
-        pg.mixer.music.play(-1)
+        if self.sound_enabled: # Check if sound is enabled before playing music
+            self.sound.play_theme()
 
     def update(self):
         self.player.update()
