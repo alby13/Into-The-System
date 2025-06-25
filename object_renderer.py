@@ -1,6 +1,6 @@
 import pygame as pg
 from settings import *
-from procedural_textures import generate_circuit_floor_texture
+from procedural_textures import generate_circuit_floor_texture, generate_ceiling_texture
 
 
 class ObjectRenderer:
@@ -16,6 +16,7 @@ class ObjectRenderer:
         self.win_image = self.get_texture('resources/textures/win.png', RES)
         # self.circuit_texture = self.get_texture('resources/textures/circuit_board.png', (TEXTURE_SIZE, TEXTURE_SIZE))
         self.procedural_floor_texture = generate_circuit_floor_texture(TEXTURE_SIZE * 2, TEXTURE_SIZE * 2)
+        self.procedural_ceiling_texture = generate_ceiling_texture(TEXTURE_SIZE * 2, TEXTURE_SIZE * 2)
         self.wall_pattern = self._create_wall_pattern_surface()
 
     def _create_wall_pattern_surface(self, width=32, height=32):
@@ -59,8 +60,19 @@ class ObjectRenderer:
         self.screen.blit(self.blood_screen, (0, 0))
 
     def draw_background(self):
-        # Sky
-        pg.draw.rect(self.screen, (0, 0, 0), (0, 0, WIDTH, HALF_HEIGHT))
+        # Ceiling rendering with procedural texture
+        if self.procedural_ceiling_texture: # Check if texture was generated
+            texture_width = self.procedural_ceiling_texture.get_width()
+            texture_height = self.procedural_ceiling_texture.get_height()
+
+            if texture_width > 0 and texture_height > 0: # Ensure dimensions are valid
+                for x in range(0, WIDTH, texture_width):
+                    for y in range(0, HALF_HEIGHT, texture_height): # Iterate up to HALF_HEIGHT
+                        self.screen.blit(self.procedural_ceiling_texture, (x, y))
+            else: # Fallback
+                pg.draw.rect(self.screen, (5,5,10), (0, 0, WIDTH, HALF_HEIGHT)) # Dark blue fallback
+        else: # Fallback if texture is None
+            pg.draw.rect(self.screen, (5,5,10), (0, 0, WIDTH, HALF_HEIGHT)) # Dark blue fallback
 
         # Floor rendering with procedural texture
         if self.procedural_floor_texture: # Check if the texture was generated successfully

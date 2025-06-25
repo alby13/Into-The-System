@@ -95,11 +95,59 @@ def generate_circuit_floor_texture(width, height) -> pg.Surface:
 
     return texture_surface
 
+def generate_ceiling_texture(width, height) -> pg.Surface:
+    texture_surface = pg.Surface((width, height))
+
+    # Colors
+    BG_COLOR = (10, 10, 25)      # Very dark blue
+    GRID_LINE_COLOR = (20, 20, 40) # Slightly lighter dark blue for grid
+    LIGHT_COLORS = [
+        (50, 20, 20, 150),       # Dim red, semi-transparent
+        (50, 50, 20, 150),       # Dim yellow, semi-transparent
+        (20, 20, 60, 150)        # Dim blue, semi-transparent
+    ]
+
+    texture_surface.fill(BG_COLOR)
+
+    # Draw faint grid lines
+    grid_spacing = 32
+    for x in range(0, width, grid_spacing):
+        pg.draw.line(texture_surface, GRID_LINE_COLOR, (x, 0), (x, height), 1)
+    for y in range(0, height, grid_spacing):
+        pg.draw.line(texture_surface, GRID_LINE_COLOR, (0, y), (width, y), 1)
+
+    # Draw sparse "indicator lights" at some grid intersections
+    num_lights = (width * height) // (grid_spacing * grid_spacing * 10) # Density: 1 light per 10 grid cells on avg
+
+    for _ in range(num_lights):
+        grid_x = random.randint(0, (width // grid_spacing) -1)
+        grid_y = random.randint(0, (height // grid_spacing) -1)
+
+        light_x = grid_x * grid_spacing
+        light_y = grid_y * grid_spacing
+
+        # Create a small surface for the light to handle alpha blending correctly
+        light_surface = pg.Surface((grid_spacing, grid_spacing), pg.SRCALPHA)
+        light_color = random.choice(LIGHT_COLORS)
+
+        # Draw light source (e.g., a small square or circle)
+        # Making it slightly offset within the grid cell for variety
+        light_size = random.randint(2, 4)
+        center_offset_x = grid_spacing // 2 + random.randint(-grid_spacing//4, grid_spacing//4)
+        center_offset_y = grid_spacing // 2 + random.randint(-grid_spacing//4, grid_spacing//4)
+
+        pg.draw.rect(light_surface, light_color, (center_offset_x - light_size // 2, center_offset_y - light_size // 2, light_size, light_size))
+
+        texture_surface.blit(light_surface, (light_x, light_y))
+
+    return texture_surface
+
 if __name__ == '__main__':
     # Example usage for testing the texture generation
     pg.init()
     texture_width, texture_height = 256, 256
-    generated_texture = generate_circuit_floor_texture(texture_width, texture_height)
+    # generated_texture = generate_circuit_floor_texture(texture_width, texture_height)
+    generated_texture = generate_ceiling_texture(texture_width, texture_height) # Test ceiling
 
     # Save or display the texture
     # pg.image.save(generated_texture, "procedural_floor_test.png")
